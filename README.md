@@ -14,7 +14,7 @@ The pre-trained model components (User latent factors P, Item latent factors Q, 
 * **FastAPI Backend:** Provides a robust and fast API service.
 * **Hugging Face Hub Integration:** Automatically downloads and loads pre-trained model components.
 * **User-Specific Recommendations:** Endpoint to get top N recommendations for a known `user_id`.
-* **Recommendations from Selection:** Endpoint to get top N recommendations based on a list of 1-5 favorite `movie_ids` provided by the user (finds a proxy user profile).
+* **Recommendations from Selection:** Endpoint to get top N recommendations based on a list of 1-20 favorite `movie_ids` provided by the user (finds a proxy user profile).
 * **User Profile Matching:** Endpoint to find the existing user ID whose ratings best match a given list of movies.
 * **Automatic API Documentation:** Interactive API documentation provided by FastAPI (Swagger UI/ReDoc).
 * **Data Preprocessing & Training Scripts:** Includes scripts to preprocess the raw data and retrain the MF model from scratch.
@@ -143,7 +143,7 @@ The following endpoints are available:
 * **Request Body:**
     ```json
     {
-      "movie_ids": [1, 296, 593, 1196, 2571] // List of 1 to 5 movie IDs
+      "movie_ids": [1, 296, 593, 1196, 2571] // List of 1 to 20 movie IDs
     }
     ```
 * **Response (Success - 200):**
