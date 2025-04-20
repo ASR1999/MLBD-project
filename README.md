@@ -208,3 +208,6 @@ This is useful if you need to update or generate the `user_ratings` structure ne
     python preprocess_ratings.py
     ```
 3.  **Output:** Updates the `model/model_mappings.pkl` file with the `user_ratings` and `index_to_userId` keys populated based on `ratings.csv`.
+
+## Contirubution
+Aditya Signh Rathore
