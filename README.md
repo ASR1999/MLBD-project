@@ -120,7 +120,7 @@ The following endpoints are available:
 
 ### `GET /recommendations/{user_id}`
 
-* **Description:** Get the top 10 movie recommendations for a specific `user_id` present in the dataset. Excludes movies the user has already rated.
+* **Description:** Get the top 10 (can be changed to n in topN in recommend_for_user function) movie recommendations for a specific `user_id` present in the dataset. Excludes movies the user has already rated.
 * **Path Parameter:**
     * `user_id` (int): The original ID of the user.
 * **Response (Success - 200):**
@@ -159,7 +159,7 @@ The following endpoints are available:
 
 ### `POST /recommendations_from_selection`
 
-* **Description:** The primary endpoint for generating recommendations based on user input. It takes a list of 1-20 movie IDs, finds the best matching user profile (using the same logic as `/find_matching_user`), and returns the top 10 movie recommendations for that *matched* user profile. Excludes movies the matched user has already rated.
+* **Description:** The primary endpoint for generating recommendations based on user input. It takes a list of 1-20 movie IDs, finds the best matching user profile (using the same logic as `/find_matching_user`), and returns the top 10 (can be changed to n in topN in recommend_for_user function) movie recommendations for that *matched* user profile. Excludes movies the matched user has already rated.
 * **Request Body:**
     ```json
     {
