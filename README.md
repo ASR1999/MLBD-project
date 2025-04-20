@@ -4,7 +4,7 @@
 
 This project implements a movie recommendation system using Matrix Factorization (MF), a popular collaborative filtering technique. It exposes a FastAPI application that serves recommendations based on user preferences. The system is trained on the MovieLens dataset.
 
-A key feature of this API allows users (even new ones without a rating history) to get personalized movie recommendations by simply providing a list of 1 to 5 movies they like. The system identifies an existing user profile in the dataset that best matches the provided movie list and generates recommendations based on that profile's learned preferences.
+A key feature of this API allows users (even new ones without a rating history) to get personalized movie recommendations by simply providing a list of 1 to 20 movies they like. The system identifies an existing user profile in the dataset that best matches the provided movie list and generates recommendations based on that profile's learned preferences.
 
 The pre-trained model components (User latent factors P, Item latent factors Q, and data mappings) are hosted on Hugging Face Hub and are automatically downloaded when the API server starts.
 
@@ -159,11 +159,11 @@ The following endpoints are available:
 
 ### `POST /recommendations_from_selection`
 
-* **Description:** The primary endpoint for generating recommendations based on user input. It takes a list of 1-5 movie IDs, finds the best matching user profile (using the same logic as `/find_matching_user`), and returns the top 10 movie recommendations for that *matched* user profile. Excludes movies the matched user has already rated.
+* **Description:** The primary endpoint for generating recommendations based on user input. It takes a list of 1-20 movie IDs, finds the best matching user profile (using the same logic as `/find_matching_user`), and returns the top 10 movie recommendations for that *matched* user profile. Excludes movies the matched user has already rated.
 * **Request Body:**
     ```json
     {
-      "movie_ids": [1, 296, 593, 1196, 2571] // List of 1 to 5 movie IDs user likes
+      "movie_ids": [1, 296, 593, 1196, 2571] // List of 1 to 20 movie IDs user likes
     }
     ```
 * **Response (Success - 200):**
