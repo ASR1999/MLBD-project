@@ -1,0 +1,12 @@
+#!/bin/bash
+# serve script
+
+# Set the MODULE_NAME environment variable if needed (e.g., if main.py is not directly in the WORKDIR)
+# export MODULE_NAME=app.main
+
+# Start Uvicorn
+# Bind to 0.0.0.0 to accept connections from outside the container
+# Listen on port 8080 as expected by SageMaker
+# --workers 1 might be enough for small instances, adjust as needed
+# Ensure main:app points correctly to your FastAPI app instance in main.py
+exec uvicorn main:app --host 0.0.0.0 --port 8080 --workers 1
