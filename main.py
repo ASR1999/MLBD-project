@@ -6,6 +6,34 @@ from typing import List, Dict, Any, Optional, Set, Tuple
 import os
 from pydantic import BaseModel, Field 
 from huggingface_hub import hf_hub_download
+from fastapi.middleware.cors import CORSMiddleware
+
+
+origins = [
+    "http://localhost",         # Allow requests from localhost (any port)
+    "http://localhost:8000",    # Allow requests from where the API might be served locally
+    "http://localhost:3000",    # Common port for React dev servers
+    "http://localhost:8080",    # Common port for Vue/Angular dev servers
+    "http://127.0.0.1",
+    "http://127.0.0.1:8000",
+    "https://berrystream.netlify.app/",
+    "https://berrystream.netlify.app/recommendations"
+]
+
+# FastAPI App Initialization (remains the same)
+app = FastAPI(
+    title="Movie Recommender API",
+    description="Provides movie recommendations based on user ID and finds users/recommendations matching movie lists.",
+    version="1.3.1" 
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,             # List of allowed origins
+    allow_credentials=True,            # Allow cookies to be included in requests
+    allow_methods=["*"],               # Allow all standard methods (GET, POST, etc.)
+    allow_headers=["*"],               # Allow all headers
+)
 
 REPO_ID_P = "aditya-sr-iitj/netflix-challenge-model-model_P.npy"
 MODEL_P_FILENAME = "model_P.npy"
@@ -68,7 +96,6 @@ def load_model_and_data():
         # Load movie titles from local CSV
         if not os.path.exists(MOVIES_CSV_PATH):
             raise FileNotFoundError(f"Movies CSV file not found: {MOVIES_CSV_PATH}")
-        print(f"INFO:     Loading movie titles from {MOVIES_CSV_PATH}...")
         print(f"INFO:     Loading movie titles and TMDB IDs from {MOVIES_CSV_PATH}...")
 
         movies_df = pd.read_csv(MOVIES_CSV_PATH)
@@ -213,14 +240,6 @@ class FindUserResponse(BaseModel):
     average_rating: Optional[float] = Field(description="Average rating given by the matched user to the matched movies.")
 
 
-# FastAPI App Initialization (remains the same)
-app = FastAPI(
-    title="Movie Recommender API",
-    description="Provides movie recommendations based on user ID and finds users/recommendations matching movie lists.",
-    version="1.3.0" # Incremented version for HF integration
-)
-
-
 # Event Handler for Startup (remains the same)
 @app.on_event("startup")
 async def startup_event():
@@ -268,7 +287,7 @@ async def get_recommendations(user_id: int):
 )
 async def find_matching_user(request: FindUserRequest):
     """
-    Accepts a list of 1 to 5 movie IDs. Finds the user who has rated the
+    Accepts a list of 1 to 20 movie IDs. Finds the user who has rated the
     highest number of movies from this list (using avg rating as tie-breaker).
     Returns the `userId` of the best matching user, or `null`.
     """
@@ -326,7 +345,7 @@ async def find_matching_user(request: FindUserRequest):
 )
 async def get_recommendations_from_selection(request: FindUserRequest):
     """
-    Accepts a list of 1 to 5 movie IDs.
+    Accepts a list of 1 to 20 movie IDs.
     1. Finds the user profile that best matches this list (most rated movies, highest avg rating tie-breaker).
     2. Generates movie recommendations based on that matched user's profile.
     3. Returns a list of recommended movies (excluding movies the matched user has already rated).
