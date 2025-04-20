@@ -4,7 +4,7 @@
 
 This project implements a movie recommendation system using Matrix Factorization (MF), a popular collaborative filtering technique. It exposes a FastAPI application that serves recommendations based on user preferences. The system is trained on the MovieLens dataset.
 
-A key feature of this API allows users (even new ones without a rating history) to get personalized movie recommendations by simply providing a list of 1 to 5 movies they like. The system identifies an existing user profile in the dataset that best matches the provided movie list and generates recommendations based on that profile's learned preferences.
+A key feature of this API allows users (even new ones without a rating history) to get personalized movie recommendations by simply providing a list of 1 to 20 movies they like. The system identifies an existing user profile in the dataset that best matches the provided movie list and generates recommendations based on that profile's learned preferences.
 
 The pre-trained model components (User latent factors P, Item latent factors Q, and data mappings) are hosted on Hugging Face Hub and are automatically downloaded when the API server starts.
 
@@ -14,7 +14,7 @@ The pre-trained model components (User latent factors P, Item latent factors Q, 
 * **FastAPI Backend:** Provides a robust and fast API service.
 * **Hugging Face Hub Integration:** Automatically downloads and loads pre-trained model components.
 * **User-Specific Recommendations:** Endpoint to get top N recommendations for a known `user_id`.
-* **Recommendations from Selection:** Endpoint to get top N recommendations based on a list of 1-5 favorite `movie_ids` provided by the user (finds a proxy user profile).
+* **Recommendations from Selection:** Endpoint to get top N recommendations based on a list of 1-20 favorite `movie_ids` provided by the user (finds a proxy user profile).
 * **User Profile Matching:** Endpoint to find the existing user ID whose ratings best match a given list of movies.
 * **Automatic API Documentation:** Interactive API documentation provided by FastAPI (Swagger UI/ReDoc).
 * **Data Preprocessing & Training Scripts:** Includes scripts to preprocess the raw data and retrain the MF model from scratch.
@@ -120,7 +120,7 @@ The following endpoints are available:
 
 ### `GET /recommendations/{user_id}`
 
-* **Description:** Get the top 10 movie recommendations for a specific `user_id` present in the dataset. Excludes movies the user has already rated.
+* **Description:** Get the top 10 (can be changed to n in topN in recommend_for_user function) movie recommendations for a specific `user_id` present in the dataset. Excludes movies the user has already rated.
 * **Path Parameter:**
     * `user_id` (int): The original ID of the user.
 * **Response (Success - 200):**
@@ -143,7 +143,7 @@ The following endpoints are available:
 * **Request Body:**
     ```json
     {
-      "movie_ids": [1, 296, 593, 1196, 2571] // List of 1 to 5 movie IDs
+      "movie_ids": [1, 296, 593, 1196, 2571] // List of 1 to 20 movie IDs
     }
     ```
 * **Response (Success - 200):**
@@ -159,11 +159,11 @@ The following endpoints are available:
 
 ### `POST /recommendations_from_selection`
 
-* **Description:** The primary endpoint for generating recommendations based on user input. It takes a list of 1-5 movie IDs, finds the best matching user profile (using the same logic as `/find_matching_user`), and returns the top 10 movie recommendations for that *matched* user profile. Excludes movies the matched user has already rated.
+* **Description:** The primary endpoint for generating recommendations based on user input. It takes a list of 1-20 movie IDs, finds the best matching user profile (using the same logic as `/find_matching_user`), and returns the top 10 (can be changed to n in topN in recommend_for_user function) movie recommendations for that *matched* user profile. Excludes movies the matched user has already rated.
 * **Request Body:**
     ```json
     {
-      "movie_ids": [1, 296, 593, 1196, 2571] // List of 1 to 5 movie IDs user likes
+      "movie_ids": [1, 296, 593, 1196, 2571] // List of 1 to 20 movie IDs user likes
     }
     ```
 * **Response (Success - 200):**
@@ -208,3 +208,6 @@ This is useful if you need to update or generate the `user_ratings` structure ne
     python preprocess_ratings.py
     ```
 3.  **Output:** Updates the `model/model_mappings.pkl` file with the `user_ratings` and `index_to_userId` keys populated based on `ratings.csv`.
+
+## Contirubution
+Aditya Signh Rathore
