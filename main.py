@@ -13,6 +13,7 @@ REPO_ID_Q = "aditya-sr-iitj/netflix-challenge-model-model_Q.npy"
 MODEL_Q_FILENAME = "model_Q.npy"
 REPO_ID_MAPPINGS = "aditya-sr-iitj/netflix-challenge-model-model_mappings.pkl"
 MAPPINGS_FILENAME = "model_mappings.pkl"
+
 MOVIES_CSV_PATH = "./data/movies.csv"
 
 # --- Global Variables for Loaded Data ---
@@ -24,6 +25,7 @@ index_to_movieId: Optional[Dict[int, int]] = None
 user_ratings: Optional[Dict[int, Dict[int, float]]] = None
 movieId_to_title: Optional[Dict[int, str]] = None
 index_to_userId: Optional[Dict[int, int]] = None
+movieId_to_tmdbId: Optional[Dict[int, Optional[int]]] = None
 app_is_ready = False # Flag to indicate if loading was successful
 
 # Loading Function
@@ -33,7 +35,7 @@ def load_model_and_data():
     and movie data from a local CSV file.
     """
     global P, Q, userId_to_index, movieId_to_index, index_to_movieId, \
-           user_ratings, movieId_to_title, index_to_userId, app_is_ready
+           user_ratings, movieId_to_title, movieId_to_tmdbId, index_to_userId, app_is_ready
 
     try:
         print(f"INFO:     Downloading/Loading models and mappings from separate Hugging Face repos...")
@@ -67,9 +69,12 @@ def load_model_and_data():
         if not os.path.exists(MOVIES_CSV_PATH):
             raise FileNotFoundError(f"Movies CSV file not found: {MOVIES_CSV_PATH}")
         print(f"INFO:     Loading movie titles from {MOVIES_CSV_PATH}...")
+        print(f"INFO:     Loading movie titles and TMDB IDs from {MOVIES_CSV_PATH}...")
+
         movies_df = pd.read_csv(MOVIES_CSV_PATH)
         movieId_to_title = {row['movieId']: row['title'] for _, row in movies_df.iterrows()}
-        print("INFO:     Movie titles loaded.")
+        movieId_to_tmdbId = {row['movieId']: row['tmdbId'] for _, row in movies_df.iterrows()}
+        print("INFO:     Movie titles and TMDB IDs loaded.")
 
         # Final check
         required_vars = {
@@ -80,12 +85,13 @@ def load_model_and_data():
             "index_to_movieId": bool(index_to_movieId),
             "user_ratings": user_ratings is not None,
             "movieId_to_title": bool(movieId_to_title),
-            "index_to_userId": bool(index_to_userId)
+            "index_to_userId": bool(index_to_userId),
+            "movieId_to_tmdbId": bool(movieId_to_tmdbId)
         }
         missing = [name for name, present in required_vars.items() if not present]
         if not missing:
             app_is_ready = True
-            print("INFO:     Model, mappings, ratings, and title data loaded successfully.")
+            print("INFO:     Model, mappings, ratings, and title/TMDB ID data loaded successfully.")
         else:
              raise ValueError(f"One or more essential data components missing after loading: {', '.join(missing)}")
 
@@ -93,7 +99,7 @@ def load_model_and_data():
         print(f"ERROR:    {e}")
         app_is_ready = False
     except KeyError as e:
-        print(f"ERROR:    Missing key {e} in mappings file downloaded from {REPO_ID}/{MAPPINGS_FILENAME}.")
+        print(f"ERROR:    Missing key {e} in mappings file downloaded from {REPO_ID_MAPPINGS}/{MAPPINGS_FILENAME}.")
         app_is_ready = False
     except Exception as e: # Catch potential download errors from huggingface_hub or other issues
         print(f"ERROR:    Failed to load model or data during startup: {e}")
@@ -107,7 +113,7 @@ def recommend_for_user(user_index: int, topN: int = 10) -> List[Dict[str, Any]]:
     using the pre-trained MF model and return the top-N recommendations.
     (Excludes already rated movies)
     """
-    if not app_is_ready or P is None or Q is None or user_ratings is None or index_to_movieId is None or movieId_to_title is None:
+    if not app_is_ready or P is None or Q is None or user_ratings is None or index_to_movieId is None or movieId_to_title is None or movieId_to_tmdbId is None:
          print("ERROR:    Recommendation function called but data not ready.")
          return []
 
@@ -136,7 +142,8 @@ def recommend_for_user(user_index: int, topN: int = 10) -> List[Dict[str, Any]]:
             recommendations.append({
                 "movieId": orig_movie_id,
                 "title": movieId_to_title.get(orig_movie_id, "(Unknown Title)"),
-                "score": round(score, 3)
+                "score": round(score, 3),
+                "tmdbId":movieId_to_tmdbId.get(orig_movie_id, None)
             })
         else:
              print(f"WARN:     m_idx {m_idx} not found in index_to_movieId mapping.")
@@ -195,9 +202,10 @@ class RecommendationItem(BaseModel):
     movieId: int
     title: str
     score: float
+    tmdbId: int
 
 class FindUserRequest(BaseModel):
-    movie_ids: List[int] = Field(..., min_items=1, max_items=5, description="List of 1 to 5 movie IDs")
+    movie_ids: List[int] = Field(..., min_items=1, max_items=20, description="List of 1 to 20 movie IDs")
 
 class FindUserResponse(BaseModel):
     matched_user_id: Optional[int] = Field(description="The ID of the user who best matched the input movies, or null if no suitable match found.")
@@ -354,7 +362,7 @@ async def get_recommendations_from_selection(request: FindUserRequest):
     else:
         # No suitable matching user found for the input movies
         print("INFO: No matching user found for the provided movie list. Returning empty recommendations.")
-        return [] # Return empty list
+        return [] 
 
 
 # Optional: Run with Uvicorn (remains the same)
